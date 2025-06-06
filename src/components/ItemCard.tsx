@@ -4,7 +4,6 @@ import {
   CardContent,
   Typography,
   Box,
-  Chip,
   CardMedia,
   Tooltip,
 } from '@mui/material';

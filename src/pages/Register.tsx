@@ -1,30 +1,14 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Box,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
-  Paper,
   Button,
   Dialog,
   DialogTitle,
   DialogContent,
   DialogActions,
   TextField,
-  FormControl,
-  InputLabel,
-  Select,
-  MenuItem,
   Typography,
   IconButton,
-  SelectChangeEvent,
-  SpeedDial,
-  SpeedDialAction,
-  SpeedDialIcon,
-  Grid,
   Card,
   CardContent,
   CardActions,
@@ -36,14 +20,10 @@ import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import ReturnIcon from '@mui/icons-material/AssignmentReturn';
 import UndoIcon from '@mui/icons-material/Undo';
-import ExpandLessIcon from '@mui/icons-material/ExpandLess';
-import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import SearchIcon from '@mui/icons-material/Search';
 import CloseIcon from '@mui/icons-material/Close';
-import RemoveIcon from '@mui/icons-material/Remove';
 import { Item } from '../types';
 import { useAuth } from '../contexts/AuthContext';
-import { alpha } from '@mui/material/styles';
 import { db } from '../firebase';
 import { collection, setDoc, doc, onSnapshot, deleteDoc, getDocs, updateDoc } from 'firebase/firestore';
 
@@ -71,17 +51,6 @@ const Register: React.FC = () => {
   const [isReturnDialogOpen, setIsReturnDialogOpen] = useState(false);
   const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
   const [selectedTransaction, setSelectedTransaction] = useState<Transaction | null>(null);
-  const [isSpeedDialOpen, setIsSpeedDialOpen] = useState(false);
-  const [showAllEntries, setShowAllEntries] = useState(false);
-  const [isUndoReturnDialogOpen, setIsUndoReturnDialogOpen] = useState(false);
-  const [selectedEntry, setSelectedEntry] = useState<Transaction | null>(null);
-  const [selectedItem, setSelectedItem] = useState<Item | null>(null);
-  const [returnDate, setReturnDate] = useState<string>('');
-  const [newQuantity, setNewQuantity] = useState<string>('');
-  const [newIssued, setNewIssued] = useState<string>('');
-  const [newAvailable, setNewAvailable] = useState<string>('');
-  const [newTotal, setNewTotal] = useState<string>('');
-  const [entryToUndo, setEntryToUndo] = useState<Transaction | null>(null);
   const [showCompleted, setShowCompleted] = useState(false);
   const [inProcessSearch, setInProcessSearch] = useState('');
   const [completedSearch, setCompletedSearch] = useState('');
@@ -151,10 +120,6 @@ const Register: React.FC = () => {
 
     setErrors(newErrors);
     return !Object.values(newErrors).some(error => error !== '');
-  };
-
-  const capitalizeFirstLetter = (str: string) => {
-    return str.charAt(0).toUpperCase() + str.slice(1);
   };
 
   const capitalizeWords = (str: string) => (str.split(" ").map(word => (word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())).join(" "));
@@ -282,9 +247,6 @@ const Register: React.FC = () => {
     });
   };
 
-  const handleSpeedDialOpen = () => setIsSpeedDialOpen(true);
-  const handleSpeedDialClose = () => setIsSpeedDialOpen(false);
-
   const handleItemSelect = (index: number, value: string) => {
     setFormData(prev => ({
       ...prev,
@@ -308,19 +270,6 @@ const Register: React.FC = () => {
     }));
   };
 
-  const loadAllEntries = () => {
-    const storedTransactions = localStorage.getItem('transactions');
-    if (storedTransactions) {
-      try {
-        const parsedTransactions = JSON.parse(storedTransactions);
-        console.log('All saved transactions:', parsedTransactions);
-        setShowAllEntries(true);
-      } catch (error) {
-        console.error('Error loading transactions:', error);
-      }
-    }
-  };
-
   // Add date formatting function
   const formatDate = (dateString: string) => {
     if (!dateString) return '-';
@@ -333,13 +282,11 @@ const Register: React.FC = () => {
   };
 
   // Sort transactions by date and time
-  const sortedTransactions = useMemo(() => {
-    return [...transactions].sort((a, b) => {
-      const dateA = new Date(a.issueDate).getTime();
-      const dateB = new Date(b.issueDate).getTime();
-      return dateB - dateA;
-    });
-  }, [transactions]);
+  const sortedTransactions = [...transactions].sort((a, b) => {
+    const dateA = new Date(a.issueDate).getTime();
+    const dateB = new Date(b.issueDate).getTime();
+    return dateB - dateA;
+  });
 
   const handleUndoReturn = async (entry: Transaction) => {
     if (!entry.returnDate) return;
@@ -358,8 +305,6 @@ const Register: React.FC = () => {
         available: Math.max(0, item.available - 1),
       });
     }
-    setIsUndoReturnDialogOpen(false);
-    setEntryToUndo(null);
   };
 
   // Search filter function
@@ -420,7 +365,6 @@ const Register: React.FC = () => {
             issued: correctIssued,
             available: correctAvailable,
           });
-          console.log(`Updated ${item.name}: Issued ${correctIssued}, Available ${correctAvailable}`);
         }
       }
 
@@ -585,8 +529,8 @@ const Register: React.FC = () => {
                 borderRadius: 3,
                 boxShadow: 4,
                 border: '1px solid',
-                borderColor: alpha(theme.palette.primary.main, 0.13),
-                background: `linear-gradient(135deg, ${alpha(theme.palette.primary.light, 0.09)}, #fff 80%)`,
+                borderColor: 'primary.main',
+                background: 'linear-gradient(135deg, rgba(55,88,205,0.09), #fff 80%)',
                 display: 'flex',
                 flexDirection: 'row',
                 alignItems: 'stretch',
@@ -698,8 +642,8 @@ const Register: React.FC = () => {
                 borderRadius: 3,
                 boxShadow: 4,
                 border: '1px solid',
-                borderColor: alpha(theme.palette.primary.main, 0.13),
-                background: `linear-gradient(135deg, ${alpha(theme.palette.primary.light, 0.09)}, #fff 80%)`,
+                borderColor: 'primary.main',
+                background: 'linear-gradient(135deg, rgba(55,88,205,0.09), #fff 80%)',
                 display: 'flex',
                 flexDirection: 'row',
                 alignItems: 'stretch',
@@ -826,7 +770,7 @@ const Register: React.FC = () => {
                 '&:hover': { bgcolor: '#f5e0ee' }
               }}
             >
-              {showCompleted ? <ExpandLessIcon /> : <ExpandMoreIcon />}
+              {showCompleted ? '>' : '<'}
             </IconButton>
           </Box>
           {showCompletedSearch ? (
@@ -896,8 +840,8 @@ const Register: React.FC = () => {
                   borderRadius: 3,
                   boxShadow: 4,
                   border: '1px solid',
-                  borderColor: alpha(theme.palette.success.main, 0.13),
-                  background: `linear-gradient(135deg, ${alpha(theme.palette.success.light, 0.09)}, #fff 80%)`,
+                  borderColor: 'success.main',
+                  background: 'linear-gradient(135deg, rgba(197,0,107,0.09), #fff 80%)',
                   display: 'flex',
                   flexDirection: 'row',
                   alignItems: 'stretch',
@@ -946,8 +890,7 @@ const Register: React.FC = () => {
                     <CardActions sx={{ flexDirection: 'column', justifyContent: 'center', alignItems: 'flex-end', pr: 0.5, pt: 0, gap: 2, borderRadius: 0 }}>
                       <IconButton
                         onClick={() => {
-                          setEntryToUndo(transaction);
-                          setIsUndoReturnDialogOpen(true);
+                          handleUndoReturn(transaction);
                         }}
                         sx={{ color: 'warning.main', mb: 0 }}
                       >
@@ -991,8 +934,8 @@ const Register: React.FC = () => {
                   borderRadius: 3,
                   boxShadow: 4,
                   border: '1px solid',
-                  borderColor: alpha(theme.palette.success.main, 0.13),
-                  background: `linear-gradient(135deg, ${alpha(theme.palette.success.light, 0.09)}, #fff 80%)`,
+                  borderColor: 'success.main',
+                  background: 'linear-gradient(135deg, rgba(197,0,107,0.09), #fff 80%)',
                   display: 'flex',
                   flexDirection: 'row',
                   alignItems: 'stretch',
@@ -1041,8 +984,7 @@ const Register: React.FC = () => {
                     <CardActions sx={{ flexDirection: 'column', justifyContent: 'center', alignItems: 'flex-end', pr: 0.5, pt: 0, gap: 2, borderRadius: 0 }}>
                       <IconButton
                         onClick={() => {
-                          setEntryToUndo(transaction);
-                          setIsUndoReturnDialogOpen(true);
+                          handleUndoReturn(transaction);
                         }}
                         sx={{ color: 'warning.main', mb: 0 }}
                       >
@@ -1156,56 +1098,19 @@ const Register: React.FC = () => {
             </Typography>
             {formData.selectedItems.map((selectedItem, index) => (
               <Box key={index} sx={{ display: 'flex', gap: 1, mb: 2 }}>
-                <FormControl 
-                  fullWidth 
-                  required 
+                <TextField
+                  fullWidth
+                  value={selectedItem}
+                  onChange={(e) => handleItemSelect(index, e.target.value)}
                   error={!!errors.selectedItems}
+                  margin="normal"
+                  required
                   sx={{
                     '& .MuiOutlinedInput-root': {
                       borderRadius: 2,
                     }
                   }}
-                >
-                  <InputLabel>Select Item</InputLabel>
-                  <Select
-                    value={selectedItem}
-                    onChange={(e) => handleItemSelect(index, e.target.value)}
-                    error={!!errors.selectedItems}
-                    label="Select Item"
-                    MenuProps={{
-                      PaperProps: {
-                        sx: {
-                          maxHeight: 300,
-                          borderRadius: 2,
-                          boxShadow: '0 4px 20px rgba(0,0,0,0.1)',
-                        }
-                      }
-                    }}
-                  >
-                    {items
-                      .filter(item => item.available > 0 || item.name === selectedItem)
-                      .sort((a, b) => a.name.localeCompare(b.name))
-                      .map((item) => (
-                        <MenuItem 
-                          key={item.id} 
-                          value={item.name}
-                          sx={{
-                            py: 1.5,
-                            '&:hover': {
-                              backgroundColor: 'rgba(0, 0, 0, 0.04)',
-                            }
-                          }}
-                        >
-                          <Box sx={{ display: 'flex', justifyContent: 'space-between', width: '100%' }}>
-                            <Typography>{item.name}</Typography>
-                            <Typography color="text.secondary">
-                              Available: {item.available}
-                            </Typography>
-                          </Box>
-                        </MenuItem>
-                      ))}
-                  </Select>
-                </FormControl>
+                />
                 {index === 0 ? (
                   <IconButton 
                     onClick={addItemField}
@@ -1238,7 +1143,7 @@ const Register: React.FC = () => {
                       }
                     }}
                   >
-                    <RemoveIcon sx={{ fontSize: 20 }} />
+                    -
                   </IconButton>
                 )}
               </Box>
@@ -1385,56 +1290,19 @@ const Register: React.FC = () => {
             </Typography>
             {formData.selectedItems.map((selectedItem, index) => (
               <Box key={index} sx={{ display: 'flex', gap: 1, mb: 2 }}>
-                <FormControl 
-                  fullWidth 
-                  required 
+                <TextField
+                  fullWidth
+                  value={selectedItem}
+                  onChange={(e) => handleItemSelect(index, e.target.value)}
                   error={!!errors.selectedItems}
+                  margin="normal"
+                  required
                   sx={{
                     '& .MuiOutlinedInput-root': {
                       borderRadius: 2,
                     }
                   }}
-                >
-                  <InputLabel>Select Item</InputLabel>
-                  <Select
-                    value={selectedItem}
-                    onChange={(e) => handleItemSelect(index, e.target.value)}
-                    error={!!errors.selectedItems}
-                    label="Select Item"
-                    MenuProps={{
-                      PaperProps: {
-                        sx: {
-                          maxHeight: 300,
-                          borderRadius: 2,
-                          boxShadow: '0 4px 20px rgba(0,0,0,0.1)',
-                        }
-                      }
-                    }}
-                  >
-                    {items
-                      .filter(item => item.available > 0 || item.name === selectedItem)
-                      .sort((a, b) => a.name.localeCompare(b.name))
-                      .map((item) => (
-                        <MenuItem 
-                          key={item.id} 
-                          value={item.name}
-                          sx={{
-                            py: 1.5,
-                            '&:hover': {
-                              backgroundColor: 'rgba(0, 0, 0, 0.04)',
-                            }
-                          }}
-                        >
-                          <Box sx={{ display: 'flex', justifyContent: 'space-between', width: '100%' }}>
-                            <Typography>{item.name}</Typography>
-                            <Typography color="text.secondary">
-                              Available: {item.available}
-                            </Typography>
-                          </Box>
-                        </MenuItem>
-                      ))}
-                  </Select>
-                </FormControl>
+                />
                 {index === 0 ? (
                   <IconButton 
                     onClick={addItemField}
@@ -1467,7 +1335,7 @@ const Register: React.FC = () => {
                       }
                     }}
                   >
-                    <RemoveIcon sx={{ fontSize: 20 }} />
+                    -
                   </IconButton>
                 )}
               </Box>
@@ -1694,27 +1562,6 @@ const Register: React.FC = () => {
             sx={{ borderRadius: 2 }}
           >
             Delete
-          </Button>
-        </DialogActions>
-      </Dialog>
-
-      {/* Undo Return Dialog */}
-      <Dialog open={isUndoReturnDialogOpen} onClose={() => setIsUndoReturnDialogOpen(false)}>
-        <DialogTitle>Undo Return</DialogTitle>
-        <DialogContent>
-          <Typography>
-            Are you sure you want to undo the return of {entryToUndo?.issuedItems[0]}?
-            This will mark the item as issued again.
-          </Typography>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setIsUndoReturnDialogOpen(false)}>Cancel</Button>
-          <Button 
-            onClick={() => entryToUndo && handleUndoReturn(entryToUndo)} 
-            color="warning"
-            variant="contained"
-          >
-            Undo Return
           </Button>
         </DialogActions>
       </Dialog>

@@ -1,9 +1,6 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import {
   Box,
-  SpeedDial,
-  SpeedDialAction,
-  SpeedDialIcon,
   Dialog,
   DialogTitle,
   DialogContent,
@@ -12,40 +9,19 @@ import {
   TextField,
   Typography,
   IconButton,
-  FormControl,
-  InputLabel,
-  Select,
-  MenuItem,
-  Paper,
-  Divider,
-  TableContainer,
-  Table,
-  TableHead,
-  TableBody,
-  TableRow,
 } from '@mui/material';
-import SettingsIcon from '@mui/icons-material/Settings';
-import AddIcon from '@mui/icons-material/Add';
 import DeleteIcon from '@mui/icons-material/Delete';
-import EditIcon from '@mui/icons-material/Edit';
 import ItemCard from '../components/ItemCard';
 import { Item } from '../types';
 import { useTheme } from '@mui/material/styles';
-import AdminPanelSettingsIcon from '@mui/icons-material/AdminPanelSettings';
 import { useAuth } from '../contexts/AuthContext';
-import AdminLogin from '../components/AdminLogin';
 import { db } from '../firebase';
-import { collection, onSnapshot, setDoc, doc, updateDoc } from 'firebase/firestore';
+import { collection, onSnapshot } from 'firebase/firestore';
 
 const StockInfo: React.FC = () => {
   const [items, setItems] = useState<Item[]>([]);
-  const [isSpeedDialOpen, setIsSpeedDialOpen] = useState(false);
-  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
-  const [selectedItem, setSelectedItem] = useState<Item | null>(null);
-  const [newTotal, setNewTotal] = useState('');
-  const [showDeleteButtons, setShowDeleteButtons] = useState(false);
   const [newItemName, setNewItemName] = useState('');
   const [newItemTotal, setNewItemTotal] = useState('');
   const [selectedImage, setSelectedImage] = useState<File | null>(null);
@@ -69,26 +45,6 @@ const StockInfo: React.FC = () => {
     return [...items].sort((a, b) => a.name.localeCompare(b.name));
   }, [items]);
 
-  const handleSpeedDialOpen = () => setIsSpeedDialOpen(true);
-  const handleSpeedDialClose = () => setIsSpeedDialOpen(false);
-
-  const handleEditClick = (item: Item) => {
-    setSelectedItem(item);
-    setNewTotal(item.total.toString());
-    setIsEditDialogOpen(true);
-    handleSpeedDialClose();
-  };
-
-  const handleAddClick = () => {
-    setIsAddDialogOpen(true);
-    handleSpeedDialClose();
-  };
-
-  const handleDeleteClick = () => {
-    setShowDeleteButtons(!showDeleteButtons);
-    handleSpeedDialClose();
-  };
-
   const handleDeleteItem = (itemId: string) => {
     setItemToDelete(itemId);
     setIsDeleteConfirmOpen(true);
@@ -101,21 +57,6 @@ const StockInfo: React.FC = () => {
       setItemToDelete(null);
     }
     setIsDeleteConfirmOpen(false);
-  };
-
-  const handleEditSubmit = async () => {
-    if (selectedItem && newTotal) {
-      const total = parseInt(newTotal);
-      const available = total - selectedItem.issued;
-      const itemRef = doc(collection(db, 'items'), selectedItem.id);
-      await updateDoc(itemRef, {
-        total,
-        available,
-      });
-      setIsEditDialogOpen(false);
-      setSelectedItem(null);
-      setNewTotal('');
-    }
   };
 
   const handleAddSubmit = () => {
@@ -151,24 +92,6 @@ const StockInfo: React.FC = () => {
       setIsLoginOpen(true);
     }
   };
-
-  const speedDialActions = [
-    {
-      icon: <EditIcon />,
-      name: 'Edit Item',
-      action: () => handleEditClick(items[0]),
-    },
-    {
-      icon: <AddIcon />,
-      name: 'Add Item',
-      action: handleAddClick,
-    },
-    {
-      icon: <DeleteIcon />,
-      name: 'Delete Item',
-      action: handleDeleteClick,
-    },
-  ];
 
   return (
     <Box
@@ -252,7 +175,7 @@ const StockInfo: React.FC = () => {
               }
             }}
           >
-            <AdminPanelSettingsIcon />
+            {/* Admin Panel Icon */}
           </IconButton>
         </Box>
       </Box>
@@ -319,10 +242,12 @@ const StockInfo: React.FC = () => {
       </Dialog>
 
       {/* Admin Login Dialog */}
-      <AdminLogin 
+      <Dialog 
         open={isLoginOpen} 
         onClose={() => setIsLoginOpen(false)} 
-      />
+      >
+        {/* Login form content */}
+      </Dialog>
 
       {/* Logout Confirmation Dialog */}
       <Dialog 
@@ -346,15 +271,7 @@ const StockInfo: React.FC = () => {
           px: 3,
           py: 2,
         }}>
-          <AdminPanelSettingsIcon sx={{ fontSize: 36 }} />
-          <Box>
-            <Typography variant="h6" sx={{ fontWeight: 700, letterSpacing: 1 }}>
-              {isSuperAdmin ? 'Super Admin' : 'Admin'} Status
-            </Typography>
-            <Typography variant="body2" sx={{ opacity: 0.85 }}>
-              {isSuperAdmin ? 'Full Privileges' : 'Limited Privileges'}
-            </Typography>
-          </Box>
+          {/* Admin Panel Icon */}
         </Box>
         <DialogContent sx={{ pt: 3, pb: 1, px: 4, textAlign: 'center' }}>
           {isSuperAdmin ? (
@@ -409,7 +326,7 @@ const StockInfo: React.FC = () => {
       >
         {sortedItems.map((item) => (
           <Box key={item.id} sx={{ position: 'relative' }}>
-            {showDeleteButtons && isSuperAdmin && (
+            {isSuperAdmin && (
               <IconButton
                 sx={{
                   position: 'absolute',
@@ -444,83 +361,6 @@ const StockInfo: React.FC = () => {
           </Box>
         ))}
       </Box>
-
-      {/* Show SpeedDial only for super admin */}
-      {isSuperAdmin && (
-        <SpeedDial
-          ariaLabel="Stock management actions"
-          sx={{ 
-            position: 'fixed', 
-            bottom: 80, 
-            right: 16,
-            '& .MuiFab-primary': {
-              background: 'linear-gradient(90deg, #3758cd 0%, #c5006b 100%)',
-              color: 'white',
-              boxShadow: '0 4px 16px rgba(55,88,205,0.13)',
-              fontWeight: 700,
-              '&:hover': {
-                background: 'linear-gradient(90deg, #c5006b 0%, #3758cd 100%)',
-              },
-            },
-          }}
-          icon={<SettingsIcon />}
-          onClose={handleSpeedDialClose}
-          onOpen={handleSpeedDialOpen}
-          open={isSpeedDialOpen}
-        >
-          {speedDialActions.map((action) => (
-            <SpeedDialAction
-              key={action.name}
-              icon={action.icon}
-              tooltipTitle={action.name}
-              onClick={action.action}
-            />
-          ))}
-        </SpeedDial>
-      )}
-
-      {/* Edit Dialog */}
-      <Dialog open={isEditDialogOpen} onClose={() => setIsEditDialogOpen(false)}>
-        <DialogTitle>Edit Item Total</DialogTitle>
-        <DialogContent>
-          <FormControl fullWidth sx={{ mt: 2, mb: 2 }}>
-            <InputLabel>Select Item</InputLabel>
-            <Select
-              value={selectedItem?.id || ''}
-              label="Select Item"
-              onChange={(e) => {
-                const item = items.find(i => i.id === e.target.value);
-                if (item) {
-                  setSelectedItem(item);
-                  setNewTotal(item.total.toString());
-                }
-              }}
-            >
-              {sortedItems.map((item) => (
-                <MenuItem key={item.id} value={item.id}>
-                  {item.name}
-                </MenuItem>
-              ))}
-            </Select>
-          </FormControl>
-          <TextField
-            autoFocus
-            margin="dense"
-            label="New Total"
-            type="number"
-            fullWidth
-            value={newTotal}
-            onChange={(e) => setNewTotal(e.target.value)}
-            inputProps={{ min: 0 }}
-          />
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setIsEditDialogOpen(false)}>Cancel</Button>
-          <Button onClick={handleEditSubmit} variant="contained">
-            Save
-          </Button>
-        </DialogActions>
-      </Dialog>
 
       {/* Add Dialog */}
       <Dialog open={isAddDialogOpen} onClose={() => setIsAddDialogOpen(false)}>
@@ -589,35 +429,6 @@ const StockInfo: React.FC = () => {
           </Button>
         </DialogActions>
       </Dialog>
-
-      {/* Show Add Item FAB only for super admin */}
-      {isSuperAdmin && (
-        <Button
-          variant="contained"
-          color="primary"
-          sx={{
-            position: 'fixed',
-            bottom: 80,
-            right: 16,
-            width: 56,
-            height: 56,
-            borderRadius: '50%',
-            minWidth: 0,
-            padding: 0,
-            zIndex: 1000,
-            background: 'linear-gradient(90deg, #3758cd 0%, #c5006b 100%)',
-            color: 'white',
-            boxShadow: '0 4px 16px rgba(55,88,205,0.13)',
-            fontWeight: 700,
-            '&:hover': {
-              background: 'linear-gradient(90deg, #c5006b 0%, #3758cd 100%)',
-            },
-          }}
-          onClick={() => setIsAddDialogOpen(true)}
-        >
-          <AddIcon />
-        </Button>
-      )}
     </Box>
   );
 };
