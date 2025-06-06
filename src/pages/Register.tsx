@@ -387,11 +387,55 @@ const Register: React.FC = () => {
     );
   };
 
+  const resyncItemCounts = async () => {
+    try {
+      // 1. Fetch all items and transactions from Firestore
+      const itemsSnapshot = await getDocs(collection(db, 'items'));
+      const transactionsSnapshot = await getDocs(collection(db, 'transactions'));
+
+      const items = itemsSnapshot.docs.map(doc => doc.data() as Item);
+      const transactions = transactionsSnapshot.docs.map(doc => doc.data() as Transaction);
+
+      // 2. Calculate the correct issued count for each item based on transactions
+      const issuedCounts: { [itemName: string]: number } = {};
+
+      transactions.forEach(tx => {
+        // Only count items in transactions with 'Issued' status
+        if (tx.status === 'Issued') {
+          tx.issuedItems.forEach(item => {
+            issuedCounts[item] = (issuedCounts[item] || 0) + 1;
+          });
+        }
+      });
+
+      // 3. Update each item in Firestore with the correct issued and available counts
+      for (const item of items) {
+        const correctIssued = issuedCounts[item.name] || 0;
+        const correctAvailable = item.total - correctIssued;
+
+        // Only update if the counts are different from current Firestore data
+        if (item.issued !== correctIssued || item.available !== correctAvailable) {
+          const itemRef = doc(collection(db, 'items'), item.id);
+          await updateDoc(itemRef, {
+            issued: correctIssued,
+            available: correctAvailable,
+          });
+          console.log(`Updated ${item.name}: Issued ${correctIssued}, Available ${correctAvailable}`);
+        }
+      }
+
+      alert('Item counts resynchronized successfully!');
+    } catch (error) {
+      console.error('Error during item count resynchronization:', error);
+      alert('Resynchronization failed. Check console for details.');
+    }
+  };
+
   const handleEditSubmit = async () => {
     if (!selectedTransaction || !validateForm()) return;
 
     const originalIssuedItems = selectedTransaction.issuedItems;
-    const editedIssuedItems = formData.selectedItems.filter(item => item);
+    const editedIssuedItems = formData.selectedItems.filter(item => item); // Filter out empty strings
 
     // Find items that were removed
     const removedItems = originalIssuedItems.filter(item => !editedIssuedItems.includes(item));
@@ -418,7 +462,7 @@ const Register: React.FC = () => {
       if (itemToUpdate) {
         const itemRef = doc(collection(db, 'items'), itemToUpdate.id);
         await updateDoc(itemRef, {
-          issued: Math.max(0, itemToUpdate.issued - 1),
+          issued: Math.max(0, itemToUpdate.issued - 1), // Ensure issued doesn't go below 0
           available: itemToUpdate.available + 1,
         });
       }
@@ -433,7 +477,7 @@ const Register: React.FC = () => {
         phone: formData.phone,
       },
       inCareOf: formData.inCareOf,
-      issuedItems: editedIssuedItems,
+      issuedItems: editedIssuedItems, // Save the filtered items
       issueDate: formData.issueDate,
       // returnDate is not changed in this dialog
     };
@@ -445,6 +489,10 @@ const Register: React.FC = () => {
 
   return (
     <Box sx={{ p: 2 }}>
+      {/* Temporary Button to Resync Item Counts */}
+      <Button variant="contained" color="primary" onClick={resyncItemCounts} sx={{ mb: 2 }}>
+        Resync Item Counts
+      </Button>
       {/* In Process Section */}
       <Box sx={{ mb: 4 }}>
         <Box sx={{ 
