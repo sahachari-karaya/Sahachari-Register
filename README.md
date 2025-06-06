@@ -1,39 +1,17 @@
 # Sahachari Register
 
-An inventory management system for tracking medical equipment and supplies.
+The Sahachari stock inventory Management WebApp, developed for the Sahachari Center under the SKSSF Kodasseri Unit, is a specialized application designed to streamline and enhance the management and monitoring of the services. This app facilitates the efficient tracking of stock items borrowing and returning processes at the center. It ensures seamless inventory oversight by maintaining detailed records of stock items such as wheelchairs, hospital beds, crutches, and other essential items. With a user-friendly interface, the app enables staff to monitor items availability, manage reservations, and ensure timely returns, thereby optimizing resource utilization and supporting the center’s mission to provide reliable access to items for those in need.
 
 ## Features
 
-- Stock information display with item cards
+- Stock information display with items name & image
 - Add and edit items
 - Issue and return tracking
 - Modern and responsive UI
-- Light theme with custom colors
 
-## Setup
+## Preview
 
-1. Install dependencies:
-```bash
-npm install
-```
-
-2. Start the development server:
-```bash
-npm run dev
-```
-
-3. Build for production:
-```bash
-npm run build
-```
-
-## Project Structure
-
-- `/src/components` - Reusable UI components
-- `/src/pages` - Main application pages
-- `/src/theme` - Theme configuration
-- `/src/types` - TypeScript type definitions
-- `/src/assets/images` - Image assets
+Visit here:- https://sahachari-register.web.app/
 
 ## Technologies Used
 
@@ -42,10 +20,6 @@ npm run build
 - Material-UI
 - Vite
 - React Router
-
-## Development
-
-The application uses Vite as the build tool and development server. The UI is built with Material-UI components and follows a light theme with custom colors (#3758cd and #c5006b).
 
 ## License
 
